@@ -26,17 +26,39 @@
         </van-popup>
         <div class="index">
             <header ref="header">
-                <nav>
+                <div class="nav">
                     <div class="a">
-                        <router-link to="/blog">谦受益</router-link>&nbsp;,
-                        <router-link to="/notebook">满招损</router-link>
+                        <router-link to="/blog/article">谦受益</router-link>&nbsp;,
+                        <router-link to="/book">满招损</router-link>
                     </div>
-                    <div>Pride hurts,&nbsp;modesty benefits.</div>
+                    <div class="b">
+                        <router-link to="/blog/article">Pride hurts</router-link>&nbsp;,
+                        <router-link to="/book">&nbsp;modesty benefits.</router-link>
+                    </div>
                     <div class="join">
-                        <button @click="show = true">加入</button>
+                        <button v-if="user.role == 0" @click="show = true">登录</button>
+                        <button v-if="user.role > 0" @click="exit">{{ user.username }}</button>
                     </div>
-                </nav>
+                </div>
             </header>
+            <nav>
+                <div class="item" @click="goto('blog-article')">
+                    <i class="iconfont akdocument"></i>
+                    <span>文章</span>
+                </div>
+                <div class="item" @click="goto('blog-category')">
+                    <i class="iconfont akcategory"></i>
+                    <span>分类</span>
+                </div>
+                <div class="item" @click="goto('blog-file')">
+                    <i class="iconfont akbook1"></i>
+                    <span>归档</span>
+                </div>
+                <div class="item" @click="goto('blog-search')">
+                    <i class="iconfont akSearch"></i>
+                    <span>搜索</span>
+                </div>
+            </nav>
         </div>
         <section class="blog">
             <article>
@@ -44,7 +66,7 @@
                     <span>
                         <van-icon name="coupon-o" />最新文章
                     </span>
-                    <span class="more">更多>></span>
+                    <span class="more" @click="goto('blog-article')">更多>></span>
                 </div>
                 <div class="loading" v-show="loading">
                     <van-loading size="50px" type="spinner" color="#1989fa" />
@@ -61,30 +83,51 @@
                     <span>
                         <van-icon name="notes-o" />分类
                     </span>
-                    <span class="more">更多>></span>
+                    <span class="more" @click="goto('blog-category')">更多>></span>
                 </div>
                 <div class="loading" v-show="loading">
                     <van-loading size="50px" type="spinner" color="#1989fa" />
                 </div>
                 <div class="category" v-for="i in category">
                     <button @click="readByCate(i)">
-                        <span>{{ i.name[0] }}</span>&nbsp;--
+                        <span>{{ i.name }}</span>&nbsp;--
                         共
                         <span>&nbsp;{{ i.count }}&nbsp;</span>篇
                     </button>
                 </div>
             </article>
         </section>
-        <footer></footer>
+        <footer>
+            <div class="c">© 2019-2020 Ahriknow.com 版权所有</div>
+            <div class="b">
+                <a href="http://www.beian.gov.cn/portal/registerSystemInfo">
+                    <img src="../assets/TB2.gif" alt />
+                    <img src="../assets/TB1.png" alt />
+                    <span>吉ICP备 19000749号</span>
+                </a>
+            </div>
+        </footer>
     </div>
 </template>
 
 <script>
-import { Icon, Popup, Field, Button, CellGroup, Toast, Loading } from "vant";
+import {
+    Icon,
+    Popup,
+    Field,
+    Button,
+    CellGroup,
+    Loading,
+    Dialog,
+    Notify
+} from "vant";
 export default {
     name: "home",
     data() {
         return {
+            user: {
+                role: 0
+            },
             category: [],
             article: [],
             show: false,
@@ -101,6 +144,9 @@ export default {
         "van-loading": Loading
     },
     methods: {
+        goto(path) {
+            this.$router.push({ name: path });
+        },
         resize() {
             if (window.orientation == 0) {
                 this.$refs.header.style.height = "85%";
@@ -109,17 +155,21 @@ export default {
             }
         },
         read(val) {
-            localStorage.setItem("article", JSON.stringify(val));
-            this.$router.push({ name: "blog-detail", params: val });
+            this.$router.push({
+                name: "blog-detail",
+                query: { cate: val.category, art: val._id }
+            });
         },
         readByCate(val) {
-            localStorage.setItem("cate", val._id);
-            this.$router.push({ name: "blog-detail", params: { cate: val._id } });
+            this.$router.push({
+                name: "blog-detail",
+                query: { cate: val._id }
+            });
         },
         login() {
             let self = this;
             this.axios({
-                url: self.url + "/api/auth/login/",
+                url: self.url + "/verification/auth/login/",
                 method: "post",
                 data: JSON.stringify(self.form),
                 headers: {
@@ -128,40 +178,59 @@ export default {
             }).then(
                 function(response) {
                     if (response.data.code === 200) {
-                        Toast.success("登陆成功");
+                        Notify({ type: "success", message: "登陆成功" });
                         self.show = false;
                         self.$store.commit("SAVE_USER", response.data.data);
-                        // window.location.reload();
+                        self.user = JSON.parse(response.data.data);
                         self.form.username = "";
                         self.form.password = "";
                     } else if (response.data.code === 300) {
-                        Toast.fail("用户被禁用");
+                        Notify({ type: "warning", message: "用户被禁用" });
                     } else if (response.data.code === 301) {
-                        Toast.fail("用户不可用");
+                        Notify({ type: "warning", message: "用户不可用" });
                         return;
-                        localStorage.setItem(
-                            "username",
-                            self.ruleForm.username
-                        );
-                        self.$router.push({
-                            name: "auth-verification",
-                            params: self.ruleForm.username
-                        });
                     } else if (response.data.code === 400) {
-                        Toast.fail("用户名或密码错误");
+                        Notify({
+                            type: "warning",
+                            message: "用户名或密码错误"
+                        });
                     } else {
                         console.log(response);
-                        Toast.fail("服务器内部错误");
+                        Notify({ type: "warning", message: "服务器内部错误" });
                     }
                 },
                 function(response) {
                     console.log(response);
-                    Toast.fail("客户端错误，请求失败");
+                    Notify({
+                        type: "warning",
+                        message: "客户端错误，请求失败"
+                    });
                 }
             );
+        },
+        exit() {
+            Dialog.confirm({
+                title: "退出",
+                message: "退出登录?"
+            })
+                .then(() => {
+                    this.user = { role: 0 };
+                    localStorage.removeItem("auth");
+                    Notify({ type: "primary", message: "已退出" });
+                })
+                .catch(() => {
+                    Notify({ type: "primary", message: "取消" });
+                });
         }
     },
     mounted() {
+        if (this.$store.state.user != null) {
+            this.user = this.$store.state.user;
+        } else {
+            this.user = {
+                role: 0
+            };
+        }
         this.resize();
         let self = this;
         window.addEventListener(
@@ -172,7 +241,12 @@ export default {
             false
         );
         this.axios
-            .get(self.url + "/data/ahriblog/article/")
+            .get(self.url + "/data/ahriblog/get_by_condition/", {
+                params: {
+                    limit: 5,
+                    cate: "1"
+                }
+            })
             .then(response => {
                 self.article = response.data.data[0];
                 self.category = response.data.data[1];
@@ -217,21 +291,38 @@ export default {
             .icon {
                 color: #fff;
             }
-            nav {
+            .nav {
                 width: 100%;
                 height: 200px;
                 text-align: center;
                 font-weight: bold;
                 color: #fff;
+                margin: 20px;
                 .a {
                     font-size: 32px;
                     a {
                         color: #fff;
+                        text-decoration: underline;
+                        transition: 0.3s;
+                        &:active {
+                            color: #aaa;
+                        }
                     }
+                }
+                .b {
+                    font-size: 18px;
                     margin: 20px;
+                    a {
+                        color: #fff;
+                        text-decoration: underline;
+                        transition: 0.3s;
+                        &:active {
+                            color: #aaa;
+                        }
+                    }
                 }
                 .join {
-                    padding: 40px 0;
+                    padding: 20px 0;
                     button {
                         width: 120px;
                         height: 40px;
@@ -241,6 +332,22 @@ export default {
                             background: #fff4;
                         }
                     }
+                }
+            }
+        }
+        nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 30px;
+            .item {
+                display: flex;
+                flex-direction: column;
+                transition: 0.3s;
+                i {
+                    font-size: 34px;
+                }
+                &:active {
+                    color: #888;
                 }
             }
         }
@@ -304,8 +411,19 @@ export default {
         }
     }
     footer {
-        width: 100px;
-        height: 200px;
+        margin-top: 50px;
+        height: 70px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        .b {
+            a {
+                img {
+                    width: 20px;
+                    transform: translateY(5px);
+                }
+            }
+        }
     }
 }
 </style>

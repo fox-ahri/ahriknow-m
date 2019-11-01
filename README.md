@@ -1,6 +1,6 @@
-# AHRIKNOW-M
-#### 2019.10.01 庆祝中国成立 70 周年
-#### VERSION = 70.0.0.1
+# 狸知 - AHRIKNOW - M
+#### 2019.11.01
+#### VERSION = 70.0.0.2
 #### [HOME](https://m.ahriknow.com/#/)
 ### Technology stack:
 - [VUE](https://cn.vuejs.org/index.html)
@@ -18,16 +18,17 @@ npm run serve
 ```
 npm run build
 ```
-#### Run your tests
-```
-npm run test
-```
-#### Lints and fixes files
-```
-npm run lint
-```
 
 ### link:
-[PC端](https://www.ahriknow.com/)
+[PC端 - https://www.ahriknow.com/](https://www.ahriknow.com/)
 
-[后台](https://admin.ahriknow.com/)
+[后台 - https://admin.ahriknow.com/](https://admin.ahriknow.com/)
+
+### Services:
+1. Ahriblog - 博客系统
+2. Notebook - 笔记系统
+3. Ahridata - 数据服务
+4. Restful - 接口服务
+5. WebSite - 网站部署
+6. MysqlAdmin - MySQL在线管理
+7. MongoAdmin - Mongo在线管理

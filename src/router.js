@@ -8,44 +8,58 @@ export default new Router({
   routes: [
     {
       path: '/',
+      alias: '/index',
       name: 'home',
       component: Home
     },
     {
-      path: '/blog',
+      path: '/',
       name: 'blog',
       component: () => import(/* webpackChunkName: "blog" */ './views/Blog.vue'),
       children: [{
-
         path: 'read',
         name: 'blog-detail',
         component: () => import(/* webpackChunkName: "blog-detail" */ './views/blog/BlogDetail.vue')
+      }, {
+
+        path: 'file',
+        name: 'blog-file',
+        component: () => import(/* webpackChunkName: "blog-file" */ './views/blog/File.vue')
+      }, {
+
+        path: 'article',
+        name: 'blog-article',
+        component: () => import(/* webpackChunkName: "blog-article" */ './views/blog/Article.vue')
+      }, {
+
+        path: 'category',
+        name: 'blog-category',
+        component: () => import(/* webpackChunkName: "blog-category" */ './views/blog/Category.vue')
+      }, {
+
+        path: 'search',
+        name: 'blog-search',
+        component: () => import(/* webpackChunkName: "blog-search" */ './views/blog/Search.vue')
       }]
     },
     {
-      path: '/notebook',
-      name: 'notebook',
-      component: () => import(/* webpackChunkName: "notebook" */ './views/Notebook.vue'),
-      redirect: '/notebook/survey',
+      path: '/book',
+      name: 'book',
+      component: () => import(/* webpackChunkName: "book" */ './views/Notebook.vue'),
+      redirect: '/book/bookshelf',
       children: [{
+        path: 'bookshelf',
+        name: 'book-bookshelf',
+        component: () => import(/* webpackChunkName: "book-bookshelf" */ './views/note/Survey.vue')
+      }, {
 
-        path: 'survey',
-        name: 'notebook-survey',
-        component: () => import(/* webpackChunkName: "notebook-survey" */ './views/note/Survey.vue')
-      },{
-
-        path: 'bookdetail',
-        name: 'notebook-bookdetail',
-        component: () => import(/* webpackChunkName: "notebook-bookdetail" */ './views/note/BookDetail.vue')
+        path: 'read',
+        name: 'book-read',
+        component: () => import(/* webpackChunkName: "book-read" */ './views/note/BookDetail.vue')
       }]
-    },
-    {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/About.vue')
+    }, {
+      path: '*',
+      redirect: '/'
     }
   ]
 })

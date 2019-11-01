@@ -1,27 +1,52 @@
 <template>
     <div id="notebook-survey" class="notebook-survey">
-        <router-link to="/notebook/bookdetail">Bookdetail</router-link>
-        <van-button v-for="i in books" plain @click="read(i)" type="primary">朴素按钮</van-button>
+        <div class="showMenu" @click="goBack">
+            <van-icon name="arrow-left" />
+        </div>
+        <div class="loading" v-show="loading">
+            <van-loading size="50px" type="spinner" color="#1989fa" />
+        </div>
+        <div class="container" v-show="!loading">
+            <div>
+                <van-cell-group>
+                    <van-field v-model="filter" placeholder="请输入搜索内容" />
+                </van-cell-group>
+                <p
+                    v-for="i in books.filter(book => !filter || book.name.includes(filter))"
+                    @click="read(i)"
+                >{{ i.name }}&nbsp;--&nbsp;{{ i.username }}</p>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
-import { Popup, Button } from "vant";
+import { CellGroup, Loading, Icon, Field } from "vant";
 export default {
     name: "notebook-survey",
     components: {
-        "van-button": Button
+        "van-cell-group": CellGroup,
+        "van-loading": Loading,
+        "van-icon": Icon,
+        "van-field": Field
     },
     data() {
         return {
-            books: []
+            loading: true,
+            books: [],
+            filter: ""
         };
     },
     created() {},
     methods: {
+        goBack() {
+            this.$router.push({ name: "home" });
+        },
         read(val) {
-            localStorage.setItem("book", JSON.stringify(val));
-            this.$router.push({ name: "notebook-bookdetail", params: val });
+            this.$router.push({
+                name: "book-read",
+                query: { _id: val._id, name: val.name }
+            });
         }
     },
     mounted() {
@@ -29,18 +54,16 @@ export default {
         this.axios
             .get(self.url + "/data/notebook/book/")
             .then(response => {
-                if (response.data.code === 0) {
-                    localStorage.removeItem("auth");
-                    self.$router.push("/auth/login");
-                } else if (response.data.code === 200) {
+                if (response.data.code === 200) {
                     self.books = response.data.data;
-                    console.log(self.books);
                 } else {
                     console.log(response);
                 }
+                self.loading = false;
             })
             .catch(response => {
                 console.log(response);
+                self.loading = false;
             });
     }
 };
@@ -48,5 +71,35 @@ export default {
 
 <style lang="scss" scoped>
 #notebook-survey {
+    .showMenu {
+        width: 40px;
+        height: 40px;
+        text-align: center;
+        line-height: 48px;
+        font-size: 24px;
+        float: left;
+        &:active {
+            background: #ccc;
+        }
+    }
+    .loading {
+        height: 200px;
+        line-height: 200px;
+        margin: 0 auto;
+        width: 50px;
+    }
+    .container {
+        padding: 100px 0;
+        display: flex;
+        justify-content: center;
+        p {
+            font-size: 16px;
+            margin: 6px 0;
+            transition: 0.3s;
+            &:active {
+                color: #000;
+            }
+        }
+    }
 }
 </style>

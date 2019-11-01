@@ -7,6 +7,7 @@ import store from './store'
 import { Lazyload } from 'vant'
 import url from './assets/url'
 Vue.prototype.url = url
+import "mavon-editor/dist/highlightjs/styles/tomorrow-night.min.css"
 
 Vue.config.productionTip = false
 Vue.use(Lazyload)
