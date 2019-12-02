@@ -55,15 +55,18 @@ export default {
             let c = [];
             let d = {};
             data.forEach(element => {
-                if (!d[element[name]]) {
+                if (!d[element[name].substr(0, 10)]) {
                     c.push({
-                        [name]: element[name],
+                        [name]: element[name].substr(0, 10),
                         allData: [element]
                     });
-                    d[element[name]] = element;
+                    d[element[name].substr(0, 10)] = element;
                 } else {
                     c.forEach(ele => {
-                        if (ele[name] == element[name]) {
+                        if (
+                            ele[name].substr(0, 10) ==
+                            element[name].substr(0, 10)
+                        ) {
                             ele.allData.push(element);
                         }
                     });

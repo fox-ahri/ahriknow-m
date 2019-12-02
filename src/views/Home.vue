@@ -98,12 +98,10 @@
             </article>
         </section>
         <footer>
-            <div class="c">© 2019-2020 Ahriknow.com 版权所有</div>
+            <div class="c">© 2019 - 2021 ahriknow.com</div>
             <div class="b">
-                <a href="http://www.beian.gov.cn/portal/registerSystemInfo">
-                    <img src="../assets/TB2.gif" alt />
-                    <img src="../assets/TB1.png" alt />
-                    <span>吉ICP备 19000749号</span>
+                <a href="http://beian.miit.gov.cn/publish/query/indexFirst.action">
+                    吉ICP备 19000749号-5
                 </a>
             </div>
         </footer>

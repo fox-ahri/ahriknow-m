@@ -50,10 +50,33 @@
             <van-loading size="50px" type="spinner" color="#1989fa" />
         </div>
         <div class="content markdown-body" v-html="article.html"></div>
-        <div class="showMenu" @click="goBack">
-            <van-icon name="arrow-left" />
+        <div class="infomation-footer nocopy">
+            <span class="go-back" @click="goBack">
+                <i class="iconfont akback">&nbsp;&nbsp;返回</i>
+            </span>
+            <div class="browse" title="浏览量">
+                <i class="iconfont akbrowse"></i>
+                <span>{{ article.browse }}</span>
+            </div>
+            <div
+                class="fabulous"
+                :class="{'true':user.role > 0 && article.fabulous}"
+                title="点赞"
+                @click="fabulous(article)"
+            >
+                <i class="iconfont akzan"></i>
+                <span>{{ article.fabulous_count }}</span>
+            </div>
+            <div
+                class="collection"
+                :class="{'true':user.role > 0 && article.collection}"
+                title="收藏"
+                @click="collection(article)"
+            >
+                <i class="iconfont akcollection"></i>
+            </div>
         </div>
-        <br>
+        <br />
         <div class="comment" v-if="article.comment">
             <div class="item" v-for="i in comment">
                 <div class="title">
@@ -156,6 +179,12 @@ export default {
     },
     data() {
         return {
+            user: {
+                username: "ahri",
+                avatar:
+                    "https://aaahri.cn/media/ahriblog/5d8aeda54a6f436e6d34baa4/2019_10_22/20191022UZkLlNdQ.jpg",
+                role: 0
+            },
             show: false,
             article: {},
             cate: "",
@@ -171,6 +200,108 @@ export default {
     },
     created() {},
     methods: {
+        fabulous(article) {
+            if (this.user.role <= 0) {
+                this.user = {
+                    username: "ahri",
+                    avatar:
+                        "https://aaahri.cn/media/ahriblog/5d8aeda54a6f436e6d34baa4/2019_10_22/20191022UZkLlNdQ.jpg",
+                    role: 0
+                };
+                localStorage.removeItem("auth");
+                this.showLogin = true;
+                return;
+            }
+            if (article.fabulous) {
+                article.fabulous = false;
+                article.fabulous_count--;
+            } else {
+                article.fabulous = true;
+                article.fabulous_count++;
+            }
+            let self = this;
+            this.axios({
+                url: self.url + "/data/ahriblog/one_article/",
+                method: "post",
+                data: JSON.stringify({
+                    user_id: self.user._id,
+                    _id: article._id,
+                    type: "fabulous",
+                    opera: article.fabulous
+                }),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }).then(
+                function(response) {
+                    if (response.data.code === 200) {
+                    } else {
+                        console.log(response);
+                        self.$message({
+                            showClose: true,
+                            message: "服务器内部错误"
+                        });
+                    }
+                },
+                function(response) {
+                    console.log(response);
+                    self.$message({
+                        showClose: true,
+                        message: "客户端错误，请求失败"
+                    });
+                }
+            );
+        },
+        collection(article) {
+            if (this.user.role <= 0) {
+                this.user = {
+                    username: "ahri",
+                    avatar:
+                        "https://aaahri.cn/media/ahriblog/5d8aeda54a6f436e6d34baa4/2019_10_22/20191022UZkLlNdQ.jpg",
+                    role: 0
+                };
+                localStorage.removeItem("auth");
+                this.showLogin = true;
+                return;
+            }
+            if (article.collection) {
+                article.collection = false;
+            } else {
+                article.collection = true;
+            }
+            let self = this;
+            this.axios({
+                url: self.url + "/data/ahriblog/one_article/",
+                method: "post",
+                data: JSON.stringify({
+                    user_id: self.user._id,
+                    _id: article._id,
+                    type: "collection",
+                    opera: article.collection
+                }),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }).then(
+                function(response) {
+                    if (response.data.code === 200) {
+                    } else {
+                        console.log(response);
+                        self.$message({
+                            showClose: true,
+                            message: "服务器内部错误"
+                        });
+                    }
+                },
+                function(response) {
+                    console.log(response);
+                    self.$message({
+                        showClose: true,
+                        message: "客户端错误，请求失败"
+                    });
+                }
+            );
+        },
         read(val) {
             if (this.$route.query.art != val._id) {
                 this.$router.push({
@@ -178,9 +309,34 @@ export default {
                     query: { art: val._id, cate: val.category }
                 });
             }
-            this.article = val;
-            this.show = false;
             let self = this;
+            this.axios
+                .get(self.url + "/data/ahriblog/one_article/", {
+                    params: {
+                        _id: val._id,
+                        user_id: self.user.role > 0 ? self.user._id : ""
+                    }
+                })
+                .then(response => {
+                    if (response.data.code === 200) {
+                        self.article = response.data.data;
+                    } else {
+                        console.log(response);
+                        self.$message({
+                            showClose: true,
+                            message: "文章加载失败",
+                            type: "warning"
+                        });
+                    }
+                })
+                .catch(response => {
+                    console.log(response);
+                    self.$message({
+                        showClose: true,
+                        message: "客户端错误，请求失败"
+                    });
+                });
+            this.show = false;
             if (val.comment)
                 this.axios
                     .get(self.url + "/data/ahriblog/comment/", {
@@ -261,6 +417,7 @@ export default {
                         self.user = JSON.parse(response.data.data);
                         self.form.username = "";
                         self.form.password = "";
+                        window.location.reload();
                     } else if (response.data.code === 300) {
                         Notify({ type: "warning", message: "用户被禁用" });
                     } else if (response.data.code === 301) {
@@ -451,6 +608,47 @@ export default {
         float: left;
         &:active {
             background: #ccc;
+        }
+    }
+    .infomation-footer {
+        display: flex;
+        padding: 0 15px;
+        .browse {
+            font-size: 22px;
+            margin: 0 12px;
+            padding: 0 10px;
+            i {
+                font-size: 24px;
+                display: inline-block;
+                transform: translateY(2px) scaleY(1.2);
+            }
+            span {
+                margin-left: 10px;
+            }
+        }
+        .fabulous {
+            cursor: pointer;
+            font-size: 22px;
+            margin: 0 12px;
+            padding: 0 10px;
+            i {
+                font-size: 24px;
+            }
+            span {
+                margin-left: 10px;
+            }
+        }
+        .collection {
+            cursor: pointer;
+            font-size: 22px;
+            margin: 0 12px;
+            padding: 0 10px;
+            i {
+                font-size: 24px;
+            }
+        }
+        .true {
+            color: #f1c40f;
         }
     }
     .loading2 {
