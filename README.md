@@ -1,6 +1,6 @@
 # 狸知 - AHRIKNOW - M
-#### 2019.12.01
-[![VERSION = 70.0.0.3](https://badgen.net/badge/release/v70.0.0.3/blue)](https://admin.ahriknow.com/)
+#### 2020.01.01
+[![VERSION = 70.0.0.4](https://badgen.net/badge/release/v70.0.0.4/blue)](https://admin.ahriknow.com/)
 #### [HOME](https://m.ahriknow.com/#/)
 ### Technology stack:
 - [VUE](https://cn.vuejs.org/index.html)
@@ -23,3 +23,5 @@
 8. Tools - 工具
    - 文本加密
    - 占位图片
+   - 图片文字提取
+   - Json格式化
